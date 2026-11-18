@@ -2,423 +2,718 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Radar">
 <title>Spotify Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f1115;--card:#181b22;--line:#262a33;--txt:#e8eaee;--mut:#8b919d;--acc:#1db954;--warn:#f0b429}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
-h1{font-size:18px;margin:0}h1 span{color:var(--acc)}
-main{max-width:860px;margin:0 auto;padding:16px}
-.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.tab{background:var(--card);border:1px solid var(--line);color:var(--mut);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
-.tab.on{color:#000;background:var(--acc);border-color:var(--acc);font-weight:600}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-select,input[type=text]{background:#0f1115;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;max-width:100%}
-input[type=text]{width:100%}
-label{color:var(--mut);font-size:13px;display:flex;gap:6px;align-items:center}
-button{background:var(--acc);color:#000;border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:14px}
-button.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
-button.sm{padding:5px 10px;font-size:12px}
-button:disabled{opacity:.5;cursor:default}
-.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
-.row:first-child{border-top:0}
-.row img,.ph{width:44px;height:44px;border-radius:6px;object-fit:cover;background:#222;flex:none}
-.row .t{flex:1;min-width:0}
-.row .t b,.row .t small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-small,.mut{color:var(--mut)}
-a{color:var(--acc);text-decoration:none}
-h3{margin:14px 0 4px;font-size:15px}
-.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
-.warn{color:var(--warn);font-size:13px}
-code{background:#0f1115;padding:2px 6px;border-radius:5px;user-select:all}
-.hide{display:none}
+:root{
+  --bg:#0a0a0f;--s1:rgba(255,255,255,.045);--s2:rgba(255,255,255,.08);--s3:rgba(255,255,255,.12);
+  --bd:rgba(255,255,255,.08);--tx:#f5f5f7;--mu:#9b9ba8;--ac:#1ed760;--ac2:#8b6cff;--err:#ff5c7a;--r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(900px 520px at 0% -10%,rgba(30,215,96,.17),transparent 60%),
+             radial-gradient(800px 520px at 100% -5%,rgba(139,108,255,.16),transparent 60%)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 20px) calc(env(safe-area-inset-right) + 22px) calc(env(safe-area-inset-bottom) + 60px) calc(env(safe-area-inset-left) + 22px)}
+.hide{display:none!important}
+
+/* header */
+.top{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.logo{width:44px;height:44px;border-radius:14px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(135deg,#1ed760,#11a84b);box-shadow:0 8px 28px rgba(30,215,96,.35)}
+.top h1{flex:1;margin:0;font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.top h1 small{display:block;font-size:13px;font-weight:500;color:var(--mu);letter-spacing:0;margin-top:2px}
+.me{display:flex;align-items:center;gap:9px;background:var(--s1);border:1px solid var(--bd);padding:4px 6px 4px 4px;border-radius:999px;font-size:13px;font-weight:600}
+.me img,.me .ini{width:30px;height:30px;border-radius:50%;object-fit:cover}
+.me button{background:none;border:0;color:var(--mu);font:500 12px Inter;padding:4px 8px;cursor:pointer}
+
+/* tabs */
+.seg{position:sticky;top:calc(env(safe-area-inset-top) + 10px);z-index:10;display:flex;gap:4px;padding:5px;margin-bottom:18px;
+  background:rgba(18,18,26,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--bd);border-radius:16px}
+.seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:none;border:0;cursor:pointer;
+  color:var(--mu);font:600 14px Inter;padding:12px 8px;border-radius:12px;transition:background .15s,color .15s}
+.seg button svg{opacity:.8}
+.seg button.on{background:var(--tx);color:#09090c}
+.seg .n{font-size:11px;font-weight:700;min-width:20px;padding:1px 7px;border-radius:999px;background:var(--s3);color:var(--tx)}
+.seg button.on .n{background:#09090c;color:#fff}
+.panel{display:none;animation:fade .2s ease}.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* control bar */
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:16px;margin-bottom:18px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r)}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.grow{flex:1 1 220px}
+.field>span{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--mu)}
+select,input[type=text]{width:100%;font:500 15px Inter;color:var(--tx);background:rgba(0,0,0,.35);border:1px solid var(--bd);border-radius:12px;padding:11px 14px;outline:none}
+select{appearance:none;-webkit-appearance:none;padding-right:36px;
+  background:rgba(0,0,0,.35) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239b9ba8' stroke-width='2.5' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 12px center}
+select:focus,input:focus{border-color:rgba(30,215,96,.6)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:600 13px Inter;color:var(--mu);background:transparent;border:1px solid var(--bd);border-radius:999px;padding:9px 13px;cursor:pointer;user-select:none}
+.chip.on{color:#09090c;background:var(--ac);border-color:var(--ac)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font:700 14px Inter;color:#06140b;background:var(--ac);border:0;border-radius:999px;padding:12px 20px;cursor:pointer;white-space:nowrap;transition:transform .1s,opacity .15s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.ghost{background:var(--s2);color:var(--tx)}
+.btn.sm{font-size:13px;padding:8px 13px}
+.btn.icon{padding:8px;width:36px;height:36px}
+.btn.done{background:var(--s2);color:var(--ac)}
+.hint{flex-basis:100%;font-size:12.5px;color:var(--mu);margin:-2px 0 0}
+
+/* summary */
+.sum{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 2px 14px}
+.sum h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.02em;flex:1}
+.sum h2 small{font-size:13px;font-weight:500;color:var(--mu);margin-left:6px;letter-spacing:0}
+.pill{font-size:12px;font-weight:600;color:var(--mu);background:var(--s1);border:1px solid var(--bd);border-radius:999px;padding:5px 10px}
+
+/* artist grid */
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.acard{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:18px 12px 14px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);transition:opacity .2s}
+.acard.done{opacity:.5}
+.av{width:92px;height:92px;border-radius:50%;overflow:hidden;display:grid;place-items:center;font-weight:800;font-size:28px;color:#fff;flex:none;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.av img{width:100%;height:100%;object-fit:cover}
+.acard b{font-size:15px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.acard small{color:var(--mu);font-size:12.5px;margin-top:-6px}
+.acard .acts{display:flex;gap:6px;margin-top:2px}
+
+/* release grid */
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.rcard{display:flex;flex-direction:column;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.cov{position:relative;aspect-ratio:1;background:var(--s2)}
+.cov img{width:100%;height:100%;object-fit:cover;display:block}
+.badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.badge.new{left:auto;right:10px;background:var(--ac);color:#06140b}
+.rinfo{padding:12px 12px 4px;flex:1;min-width:0}
+.rinfo b{display:block;font-size:14.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rinfo small{display:block;color:var(--mu);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.racts{display:flex;gap:6px;padding:10px 12px 12px}
+.racts .btn{flex:1}
+
+/* track list */
+.group{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:6px 14px 8px;margin-bottom:14px}
+.ghead{display:flex;align-items:center;gap:12px;padding:10px 0 8px}
+.ghead .av{width:40px;height:40px;font-size:15px;box-shadow:none}
+.ghead b{flex:1;font-size:16px}
+.trow{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--bd)}
+.trow img,.trow .ph{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--s2);flex:none}
+.trow .t{flex:1;min-width:0}
+.trow .t b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .t small{display:block;font-size:12.5px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .acts{display:flex;gap:6px}
+
+/* misc */
+.prog{margin:-6px 0 18px;padding:12px 16px;background:var(--s1);border:1px solid var(--bd);border-radius:14px}
+.prog div{font-size:13px;color:var(--mu);margin-bottom:8px}
+.prog .track{height:5px;background:var(--s2);border-radius:3px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .25s}
+.empty{text-align:center;padding:50px 20px;color:var(--mu);border:1px dashed var(--bd);border-radius:var(--r)}
+.empty b{display:block;color:var(--tx);font-size:16px;margin-bottom:4px}
+.warn{color:#ffb547;font-size:13px;margin-top:12px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translate(-50%,20px);opacity:0;z-index:50;
+  max-width:min(560px,calc(100vw - 32px));padding:13px 18px;border-radius:14px;font-size:14px;font-weight:500;
+  background:#1d1d27;border:1px solid var(--s3);box-shadow:0 12px 40px rgba(0,0,0,.5);transition:all .25s;pointer-events:none;word-break:break-word}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.err{border-color:rgba(255,92,122,.6)}
+.setup{max-width:520px;margin:40px auto;padding:26px;background:var(--s1);border:1px solid var(--bd);border-radius:22px}
+.setup h2{margin:0 0 6px;font-size:22px;letter-spacing:-.02em}
+.setup p{color:var(--mu);margin:0 0 16px}
+.setup .btn{width:100%;margin-top:14px;padding:14px}
+@media (max-width:600px){.seg button .lbl-long{display:none}.agrid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}.rgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
 </style>
 </head>
 <body>
-<header>
-  <h1>Spotify <span>Radar</span></h1>
-  <div id="who" class="mut"></div>
-</header>
-<main>
-  <section id="setup" class="card hide">
-    <h3 style="margin-top:0">Connexion</h3>
-    <p class="mut">1. Sur <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a>, crée une app (compte Premium requis) et ajoute ce <b>Redirect URI</b> :</p>
-    <p><code id="redir"></code></p>
-    <p class="mut">2. Colle ici le <b>Client ID</b> de l'app :</p>
-    <input type="text" id="cid" placeholder="Client ID" autocomplete="off">
-    <p><button id="login">Se connecter à Spotify</button></p>
-    <p id="authErr" class="warn"></p>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06140b" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l6-6"/></svg></div>
+    <h1>Radar<small>Ton Spotify, passé au crible</small></h1>
+    <div class="me hide" id="me"></div>
+  </header>
+
+  <section id="setup" class="setup hide">
+    <h2>Connexion à Spotify</h2>
+    <p>Ton app Spotify doit avoir ce Redirect URI :<br><b id="redir" style="color:var(--tx);word-break:break-all"></b></p>
+    <div class="field"><span>Client ID</span><input type="text" id="cid" autocomplete="off" spellcheck="false"></div>
+    <button class="btn" id="login">Se connecter</button>
+    <div id="authErr" class="warn"></div>
   </section>
 
-  <section id="app" class="hide">
-    <div class="tabs">
-      <div class="tab on" data-tab="artists">Artistes non suivis</div>
-      <div class="tab" data-tab="discover">Découvrir</div>
-      <div class="tab" data-tab="news">Nouveautés</div>
+  <div id="app" class="hide">
+    <nav class="seg">
+      <button data-tab="artists" class="on"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Artistes<span class="n hide" id="n-artists"></span></button>
+      <button data-tab="discover"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Découvrir<span class="n hide" id="n-discover"></span></button>
+      <button data-tab="news"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>Nouveautés<span class="n hide" id="n-news"></span></button>
+    </nav>
+
+    <!-- champs partagés, déplacés dans le panneau actif -->
+    <div class="hide">
+      <label class="field grow" id="fSrc"><span>Playlist analysée</span><select id="pl"></select></label>
+      <label class="field grow" id="fDest"><span>Ajouter dans</span><select id="dest"></select></label>
     </div>
 
-    <div class="card" id="plBox">
-      <div class="controls">
-        <select id="pl"></select>
-        <span class="mut" id="plInfo"></span>
+    <div id="prog" class="prog hide"><div id="progTxt"></div><div class="track"><i id="progBar"></i></div></div>
+
+    <section class="panel on" id="p-artists">
+      <div class="bar">
+        <div data-slot="src" style="display:contents"></div>
+        <button class="btn" id="goArtists">Analyser</button>
+        <p class="hint">Les artistes de la playlist que tu ne suis pas encore. Seules tes playlists (ou collaboratives) sont lisibles.</p>
       </div>
-      <div class="mut" style="margin-top:6px;font-size:12px">Seules tes playlists (ou collaboratives) sont lisibles : limite de l'API Spotify depuis 2026.</div>
-    </div>
+      <div id="r-artists"></div>
+    </section>
 
-    <div id="p-artists">
-      <div class="card"><div class="controls"><button id="goArtists">Analyser la playlist</button><span class="mut">Artistes présents dans la playlist que tu ne suis pas.</span></div></div>
-    </div>
-
-    <div id="p-discover" class="hide">
-      <div class="card">
-        <div class="controls">
-          <label>Artistes à explorer
-            <select id="nArt"><option>10</option><option selected>20</option><option>30</option></select>
-          </label>
-          <label><input type="checkbox" id="allPl"> Toutes mes playlists = déjà connues</label>
-          <label><input type="checkbox" id="useGenre" checked> Ajouter des artistes proches (genres)</label>
-          <button id="goDiscover">Chercher</button>
-        </div>
-        <div class="mut" style="margin-top:6px;font-size:12px">Titres des artistes de la playlist absents de tes titres likés et de la playlist. Les « connus » = likés + playlist (+ toutes tes playlists si coché).</div>
+    <section class="panel" id="p-discover">
+      <div class="bar">
+        <div data-slot="src" style="display:contents"></div>
+        <div data-slot="dest" style="display:contents"></div>
+        <label class="field"><span>Artistes explorés</span><select id="nArt"><option>10</option><option selected>20</option><option>30</option></select></label>
+        <div class="field"><span>Options</span><div class="chips"><span class="chip" data-opt="allPl">Ignorer toutes mes playlists</span><span class="chip on" data-opt="genre">Artistes proches</span></div></div>
+        <button class="btn" id="goDiscover">Chercher</button>
       </div>
-    </div>
+      <div id="r-discover"></div>
+    </section>
 
-    <div id="p-news" class="hide">
-      <div class="card">
-        <div class="controls">
-          <label>Sorties des
-            <select id="days"><option value="7">7 derniers jours</option><option value="14" selected>14 derniers jours</option><option value="30">30 derniers jours</option><option value="60">60 derniers jours</option></select>
-          </label>
-          <button id="goNews">Scanner mes artistes suivis</button>
-        </div>
-        <div class="mut" style="margin-top:6px;font-size:12px">Un appel par artiste suivi : compte quelques minutes si tu en suis beaucoup.</div>
+    <section class="panel" id="p-news">
+      <div class="bar">
+        <div data-slot="dest" style="display:contents"></div>
+        <label class="field"><span>Période</span><select id="days"><option value="7">7 jours</option><option value="14" selected>14 jours</option><option value="30">30 jours</option><option value="60">60 jours</option></select></label>
+        <div class="field"><span>Type</span><div class="chips" id="typeChips"><span class="chip on" data-type="all">Tout</span><span class="chip" data-type="album">Albums</span><span class="chip" data-type="single">Singles</span></div></div>
+        <button class="btn" id="goNews">Scanner</button>
+        <p class="hint">Scanne les 60 derniers jours de tous tes artistes suivis (quelques minutes si tu en suis beaucoup). Le résultat est gardé : la période et le type se filtrent sans relancer.</p>
       </div>
-    </div>
-
-    <div id="prog" class="hide card"><div id="progTxt" class="mut"></div><div class="bar"><i id="progBar"></i></div></div>
-    <div id="out"></div>
-  </section>
-</main>
+      <div id="r-news"></div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
+/* ================= Utils ================= */
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const REDIR = location.origin + location.pathname.replace(/index\.html$/, '');
-const SCOPES = 'playlist-read-private playlist-read-collaborative user-follow-read user-library-read user-library-modify';
-const S = { me: null, playlists: [], followed: null, liked: null, plCache: {} };
-let tok = null;
-try { tok = JSON.parse(localStorage.getItem('tok') || 'null'); } catch (e) {}
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .replace(/\(.*?\)|\[.*?\]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const tkey = (name, artist) => norm(name) + '|' + norm(artist);
+function parseDate(s) { if (!s) return 0; const p = s.split('-'); return new Date(+p[0], (+p[1] || 1) - 1, +p[2] || 1).getTime(); }
+const DAY = 864e5;
+function relDays(ts) {
+  const d = Math.floor((Date.now() - ts) / DAY);
+  return d <= 0 ? "aujourd'hui" : d === 1 ? 'hier' : `il y a ${d} j`;
+}
+function relTime(ts) {
+  const m = Math.round((Date.now() - ts) / 60000);
+  if (m < 1) return "à l'instant"; if (m < 60) return `il y a ${m} min`;
+  const h = Math.round(m / 60); if (h < 24) return `il y a ${h} h`;
+  return `il y a ${Math.round(h / 24)} j`;
+}
+const fmtDate = s => { const t = parseDate(s); return t ? new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : ''; };
+function pickImg(imgs, min) {
+  if (!imgs || !imgs.length) return '';
+  const s = [...imgs].sort((a, b) => (a.width || 0) - (b.width || 0));
+  return (s.find(i => (i.width || 0) >= min) || s[s.length - 1]).url;
+}
+const sp = (type, id) => `https://open.spotify.com/${type}/${id}`;
+const HUES = [150, 260, 200, 330, 30, 280, 180, 0];
+function initials(name, id) {
+  const ini = String(name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const h = HUES[[...String(id || name)].reduce((a, c) => a + c.charCodeAt(0), 0) % HUES.length];
+  return { ini: esc(ini), bg: `linear-gradient(135deg,hsl(${h} 70% 45%),hsl(${h + 40} 70% 30%))` };
+}
+function avatar(id, name) {
+  const url = imgCache[id];
+  if (url) return `<div class="av" data-av="${esc(id)}"><img src="${esc(url)}" alt="" loading="lazy"></div>`;
+  const i = initials(name, id);
+  return `<div class="av" data-av="${esc(id)}" style="background:${i.bg}">${i.ini}</div>`;
+}
+let toastT;
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast on' + (err ? ' err' : '');
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = 'toast' + (err ? ' err' : ''), err ? 7000 : 3200);
+}
+function setProg(txt, pct) { $('#prog').classList.remove('hide'); $('#progTxt').textContent = txt; $('#progBar').style.width = (pct ?? 100) + '%'; }
+const endProg = () => $('#prog').classList.add('hide');
+const progFn = label => (d, n) => setProg(`${label} · ${d}/${n}`, d / n * 100);
+const ICON = {
+  play: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
+  plus: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  check: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  heart: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+  heartF: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>'
+};
 
-/* ---------- Auth (PKCE) ---------- */
+/* ================= Auth (PKCE, sans secret) ================= */
+const REDIR = location.origin + location.pathname.replace(/index\.html$/, '');
+const SCOPES = ['playlist-read-private', 'playlist-read-collaborative', 'playlist-modify-private', 'playlist-modify-public',
+  'user-follow-read', 'user-follow-modify', 'user-library-read', 'user-library-modify'];
+let tok = store.get('tok', null);
 const b64 = a => btoa(String.fromCharCode(...new Uint8Array(a))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
 async function login() {
   const cid = $('#cid').value.trim();
   if (!cid) { $('#authErr').textContent = 'Client ID manquant.'; return; }
-  localStorage.setItem('cid', cid);
+  store.set('cid', cid);
   const v = b64(crypto.getRandomValues(new Uint8Array(48)));
   const ch = b64(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)));
-  localStorage.setItem('verifier', v);
+  store.set('verifier', v);
   location.href = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
-    client_id: cid, response_type: 'code', redirect_uri: REDIR, scope: SCOPES,
-    code_challenge_method: 'S256', code_challenge: ch
+    client_id: cid, response_type: 'code', redirect_uri: REDIR, scope: SCOPES.join(' '),
+    code_challenge_method: 'S256', code_challenge: ch, show_dialog: 'true'
   });
 }
-
 async function tokenCall(params) {
   const r = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ client_id: localStorage.getItem('cid'), ...params })
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: store.get('cid', ''), ...params })
   });
   const d = await r.json();
   if (!r.ok) throw new Error(d.error_description || d.error || 'auth');
-  tok = { access_token: d.access_token, refresh_token: d.refresh_token || (tok && tok.refresh_token), exp: Date.now() + d.expires_in * 1000 };
-  localStorage.setItem('tok', JSON.stringify(tok));
+  tok = { access_token: d.access_token, refresh_token: d.refresh_token || (tok && tok.refresh_token),
+          scope: d.scope || (tok && tok.scope) || '', exp: Date.now() + d.expires_in * 1000 };
+  store.set('tok', tok);
 }
-const exchange = code => tokenCall({ grant_type: 'authorization_code', code, redirect_uri: REDIR, code_verifier: localStorage.getItem('verifier') });
+const exchange = code => tokenCall({ grant_type: 'authorization_code', code, redirect_uri: REDIR, code_verifier: store.get('verifier', '') });
 const refresh = () => tokenCall({ grant_type: 'refresh_token', refresh_token: tok.refresh_token });
+const missingScopes = () => SCOPES.filter(s => !(tok && tok.scope || '').split(' ').includes(s));
+function logout() { store.del('tok'); tok = null; location.reload(); }
 
-/* ---------- API helpers ---------- */
+/* ================= API ================= */
 async function api(path, opt = {}, tries = 0) {
   if (tok && Date.now() > tok.exp - 60000) await refresh();
   const url = path.startsWith('http') ? path : 'https://api.spotify.com/v1' + path;
-  const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + tok.access_token, ...(opt.headers || {}) } });
+  const headers = { Authorization: 'Bearer ' + tok.access_token };
+  let body = opt.body;
+  if (opt.json) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(opt.json); }
+  const r = await fetch(url, { method: opt.method || 'GET', headers, body });
   if (r.status === 429 && tries < 6) { await sleep((+r.headers.get('Retry-After') || 2) * 1000 + 300); return api(path, opt, tries + 1); }
   if (r.status === 401 && tries < 1) { await refresh(); return api(path, opt, tries + 1); }
-  if (!r.ok) { const t = await r.text(); throw new Error(r.status + ' ' + path.split('?')[0] + ' ' + t.slice(0, 140)); }
-  return r.status === 204 ? null : r.json().catch(() => null);
+  if (!r.ok) {
+    const t = await r.text(); let m = t.slice(0, 160);
+    try { m = JSON.parse(t).error.message || m; } catch (e) {}
+    const err = new Error(`${r.status} · ${m}`); err.status = r.status; throw err;
+  }
+  if (r.status === 204) return null;
+  const txt = await r.text();
+  try { return JSON.parse(txt); } catch (e) { return null; }
 }
-
 async function pageAll(path, pick = x => x) {
   let url = path; const out = [];
   while (url) { const d = pick(await api(url)); out.push(...(d.items || [])); url = d.next; }
   return out;
 }
-
-let errs = [];
-async function pool(items, n, fn, prog) {
+async function pool(items, n, fn, prog, errs) {
   let i = 0, done = 0;
-  await Promise.all(Array.from({ length: n }, async () => {
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
     while (i < items.length) {
       const k = i++;
-      try { await fn(items[k], k); } catch (e) { errs.push(e.message); }
-      if (prog) prog(++done, items.length);
+      try { await fn(items[k], k); } catch (e) { errs && errs.push(e.message); }
+      prog && prog(++done, items.length);
     }
   }));
 }
+const errNote = errs => errs.length ? `<p class="warn">${errs.length} requête(s) en erreur, ex. : ${esc(errs[0])}</p>` : '';
 
-/* ---------- UI helpers ---------- */
-function setProg(txt, pct) {
-  $('#prog').classList.remove('hide');
-  $('#progTxt').textContent = txt;
-  $('#progBar').style.width = (pct == null ? 100 : pct) + '%';
-}
-const endProg = () => $('#prog').classList.add('hide');
-const progFn = label => (d, n) => setProg(`${label} ${d}/${n}`, d / n * 100);
-function errNote() {
-  if (!errs.length) return '';
-  return `<p class="warn">${errs.length} erreur(s), ex. : ${esc(errs[0])}</p>`;
-}
-const spUrl = (type, id) => `https://open.spotify.com/${type}/${id}`;
-const cover = o => (o.images && o.images.length ? o.images[o.images.length - 1].url : '');
-const img = u => u ? `<img src="${esc(u)}" loading="lazy" alt="">` : '<div class="ph"></div>';
-const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  .replace(/\(.*?\)|\[.*?\]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
-const tkey = t => norm(t.name) + '|' + norm((t.artists && t.artists[0] && t.artists[0].name) || '');
-function parseDate(s) {
-  if (!s) return 0;
-  const p = s.split('-');
-  return new Date(+p[0], (+p[1] || 1) - 1, +p[2] || 1).getTime();
-}
-const selPl = () => $('#pl').value;
+/* ================= State ================= */
+const S = { me: null, playlists: [], followed: null, liked: null, plCache: {} };
+const imgCache = store.get('artImg', {});
+const added = store.get('added', {});       // destId -> [albumId|trackId]
+const R = {                                  // résultats gardés entre onglets et visites
+  artists: store.get('res-artists', null),
+  discover: store.get('res-discover', null),
+  news: store.get('res-news', null)
+};
+const saveR = k => store.set('res-' + k, R[k]);
+const opts = { allPl: false, genre: true, type: 'all' };
 
-/* ---------- Data loaders ---------- */
-async function loadPlaylists() {
+/* ================= Data ================= */
+const isMine = p => p && (p.collaborative || (p.owner && p.owner.id === S.me.id));
+async function loadPlaylists(keepDest) {
   S.playlists = (await pageAll('/me/playlists?limit=50')).filter(Boolean);
-  const sel = $('#pl');
-  sel.innerHTML = S.playlists.map(p => {
-    const ok = p.collaborative || (p.owner && p.owner.id === S.me.id);
-    return `<option value="${esc(p.id)}" ${ok ? '' : 'disabled'}>${ok ? '' : '🔒 '}${esc(p.name)}</option>`;
-  }).join('');
-  const first = [...sel.options].find(o => !o.disabled);
-  if (first) sel.value = first.value;
-  $('#plInfo').textContent = `${S.playlists.length} playlists`;
+  const mine = S.playlists.filter(isMine), others = S.playlists.filter(p => !isMine(p));
+  const srcSel = store.get('src', ''), destSel = keepDest || store.get('dest', '');
+  $('#pl').innerHTML = mine.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('') +
+    (others.length ? `<optgroup label="Non lisibles (limite Spotify)">${others.map(p => `<option disabled>${esc(p.name)}</option>`).join('')}</optgroup>` : '');
+  $('#dest').innerHTML = '<option value="">Choisir…</option><option value="__new">＋ Nouvelle playlist…</option>' +
+    mine.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  if (mine.some(p => p.id === srcSel)) $('#pl').value = srcSel;
+  if (mine.some(p => p.id === destSel)) $('#dest').value = destSel;
 }
+const plName = id => (S.playlists.find(p => p.id === id) || {}).name || 'la playlist';
 
-async function plTracks(id) {
-  if (S.plCache[id]) return S.plCache[id];
+async function plTracks(id, fresh) {
+  if (S.plCache[id] && !fresh) return S.plCache[id];
   let items;
   try { items = await pageAll(`/playlists/${id}/items?limit=50`); }
   catch (e) { items = await pageAll(`/playlists/${id}/tracks?limit=50`); }
   const out = items.map(x => x && (x.item || x.track)).filter(t => t && t.id && t.type !== 'episode');
-  S.plCache[id] = out;
-  return out;
+  S.plCache[id] = out; return out;
 }
-
-async function loadFollowed() {
-  if (S.followed) return S.followed;
+async function loadFollowed(fresh) {
+  if (S.followed && !fresh) return S.followed;
   const arr = await pageAll('/me/following?type=artist&limit=50', d => d.artists);
   S.followed = new Map(arr.map(a => [a.id, a]));
+  arr.forEach(a => { const u = pickImg(a.images, 160); if (u) imgCache[a.id] = u; });
+  store.set('artImg', imgCache);
   return S.followed;
 }
-
 async function loadLiked() {
   if (S.liked) return S.liked;
-  const arr = await pageAll('/me/tracks?limit=50');
-  S.liked = arr.map(x => x && (x.track || x.item)).filter(t => t && t.id);
+  S.liked = (await pageAll('/me/tracks?limit=50')).map(x => x && (x.track || x.item)).filter(t => t && t.id);
   return S.liked;
 }
-
 function playlistArtists(tracks) {
   const m = new Map();
   for (const t of tracks) for (const a of t.artists || []) {
     if (!a.id) continue;
-    const e = m.get(a.id) || { id: a.id, name: a.name, n: 0 };
-    e.n++; m.set(a.id, e);
+    const e = m.get(a.id) || { id: a.id, name: a.name, n: 0 }; e.n++; m.set(a.id, e);
   }
   return [...m.values()];
 }
-
-/* ---------- Tab 1 : artistes non suivis ---------- */
-async function runArtists() {
-  errs = []; $('#out').innerHTML = '';
-  setProg('Lecture de la playlist et des artistes suivis…', 30);
-  const [tr, fol] = await Promise.all([plTracks(selPl()), loadFollowed()]);
-  endProg();
-  const list = playlistArtists(tr);
-  const un = list.filter(a => !fol.has(a.id)).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
-  $('#out').innerHTML = `<div class="card"><b>${tr.length}</b> titres · <b>${list.length}</b> artistes · <b>${un.length}</b> non suivis` +
-    un.map(a => `<div class="row"><div class="t"><b>${esc(a.name)}</b><small>${a.n} titre${a.n > 1 ? 's' : ''} dans la playlist</small></div>
-      <a href="${spUrl('artist', a.id)}" target="_blank">Ouvrir</a>
-      <button class="sm" data-follow="${esc(a.id)}">Suivre</button></div>`).join('') + '</div>' + errNote();
+async function hydrateAvatars(ids) {
+  const need = [...new Set(ids)].filter(id => !(id in imgCache)).slice(0, 80);
+  await pool(need, 3, async id => {
+    const d = await api('/artists/' + id);
+    imgCache[id] = pickImg(d.images, 160) || '';
+    if (imgCache[id]) $$(`[data-av="${id}"]`).forEach(el => { el.style.background = ''; el.innerHTML = `<img src="${esc(imgCache[id])}" alt="">`; });
+  });
+  store.set('artImg', imgCache);
 }
 
-/* ---------- Tab 2 : découvrir ---------- */
-async function buildKnown(allPl) {
-  const ids = new Set(), keys = new Set();
-  const add = t => { ids.add(t.id); keys.add(tkey(t)); };
+/* ================= Actions ================= */
+async function followArtist(id) {
+  const uri = 'spotify:artist:' + id;
+  try { await api('/me/library?uris=' + encodeURIComponent(uri), { method: 'PUT' }); }
+  catch (e1) {
+    try { await api('/me/following?type=artist&ids=' + id, { method: 'PUT' }); }
+    catch (e2) { throw new Error(`${e1.message} / ${e2.message}`); }
+  }
+  S.followed && S.followed.set(id, { id });
+}
+async function likeTrack(id) {
+  const uri = 'spotify:track:' + id;
+  try { await api('/me/library?uris=' + encodeURIComponent(uri), { method: 'PUT' }); }
+  catch (e1) { await api('/me/tracks?ids=' + id, { method: 'PUT' }); }
+}
+async function createPlaylist() {
+  const name = prompt('Nom de la nouvelle playlist', 'Radar · Nouveautés');
+  if (!name) { $('#dest').value = store.get('dest', ''); return; }
+  const body = { json: { name, public: false, description: 'Créée par Spotify Radar' }, method: 'POST' };
+  let p;
+  try { p = await api('/me/playlists', body); } catch (e) { p = await api(`/users/${S.me.id}/playlists`, body); }
+  store.set('dest', p.id);
+  await loadPlaylists(p.id);
+  toast(`Playlist « ${name} » créée`);
+}
+function destId() {
+  const d = $('#dest').value;
+  if (!d || d === '__new') { toast('Choisis d’abord une playlist dans « Ajouter dans ».', true); $('#dest').focus(); return null; }
+  return d;
+}
+async function addUris(dest, uris) {
+  const existing = new Set((await plTracks(dest, true)).map(t => 'spotify:track:' + t.id));
+  const todo = [...new Set(uris)].filter(u => !existing.has(u));
+  for (let i = 0; i < todo.length; i += 100) {
+    const chunk = todo.slice(i, i + 100);
+    try { await api(`/playlists/${dest}/items`, { method: 'POST', json: { uris: chunk } }); }
+    catch (e) { if (e.status === 404 || e.status === 405) await api(`/playlists/${dest}/tracks`, { method: 'POST', json: { uris: chunk } }); else throw e; }
+  }
+  delete S.plCache[dest];
+  return { added: todo.length, skipped: uris.length - todo.length };
+}
+async function albumUris(id) {
+  const d = await api(`/albums/${id}/tracks?limit=50`);
+  return (d.items || []).filter(t => t && t.id).map(t => 'spotify:track:' + t.id);
+}
+function markAdded(dest, ids) {
+  added[dest] = [...new Set([...(added[dest] || []), ...ids])].slice(-3000);
+  store.set('added', added);
+}
+const isAdded = id => (added[$('#dest').value] || []).includes(id);
+
+/* ================= Onglet 1 : artistes non suivis ================= */
+async function runArtists() {
+  const id = $('#pl').value;
+  if (!id) return toast('Aucune playlist lisible.', true);
+  setProg('Lecture de la playlist et de tes artistes suivis…', 35);
+  const [tr, fol] = await Promise.all([plTracks(id, true), loadFollowed(true)]);
+  const all = playlistArtists(tr);
+  R.artists = { plId: id, plName: plName(id), ts: Date.now(), tracks: tr.length, total: all.length,
+    list: all.filter(a => !fol.has(a.id)).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)), done: [] };
+  saveR('artists'); endProg(); renderArtists();
+  hydrateAvatars(R.artists.list.map(a => a.id));
+}
+function renderArtists() {
+  const r = R.artists, box = $('#r-artists');
+  if (!r) { box.innerHTML = `<div class="empty"><b>Choisis une playlist et lance l’analyse</b>Tu verras les artistes que tu ne suis pas encore.</div>`; badge('artists'); return; }
+  const left = r.list.filter(a => !r.done.includes(a.id)).length;
+  box.innerHTML = `<div class="sum"><h2>${esc(r.plName)}<small>${relTime(r.ts)}</small></h2>
+      <span class="pill">${r.tracks} titres</span><span class="pill">${r.total} artistes</span><span class="pill" style="color:var(--ac)">${left} non suivis</span></div>` +
+    (r.list.length ? `<div class="agrid">${r.list.map(a => {
+      const done = r.done.includes(a.id);
+      return `<div class="acard ${done ? 'done' : ''}">${avatar(a.id, a.name)}<b>${esc(a.name)}</b><small>${a.n} titre${a.n > 1 ? 's' : ''}</small>
+        <div class="acts"><a class="btn ghost sm icon" href="${sp('artist', a.id)}" target="_blank" title="Ouvrir">${ICON.play}</a>
+        <button class="btn sm ${done ? 'done' : ''}" data-follow="${esc(a.id)}" ${done ? 'disabled' : ''}>${done ? ICON.check + 'Suivi' : 'Suivre'}</button></div></div>`;
+    }).join('')}</div>` : `<div class="empty"><b>Tu suis déjà tout le monde</b>Aucun artiste non suivi dans cette playlist.</div>`);
+  badge('artists', left);
+}
+
+/* ================= Onglet 2 : découvrir ================= */
+function shapeTrack(t, al) {
+  al = al || t.album || {};
+  return { id: t.id, name: t.name, artists: (t.artists || []).map(a => a.name).join(', '),
+    album: al.name || '', year: (al.release_date || '').slice(0, 4), img: pickImg(al.images, 64), date: al.release_date || '' };
+}
+async function buildKnown(srcId, allPl) {
+  const keys = new Set(), ids = new Set();
+  const add = t => { ids.add(t.id); keys.add(tkey(t.name, t.artists && t.artists[0] && t.artists[0].name)); };
   setProg('Lecture de tes titres likés…', 10);
   (await loadLiked()).forEach(add);
-  (await plTracks(selPl())).forEach(add);
-  if (allPl) {
-    const ok = S.playlists.filter(p => p.collaborative || (p.owner && p.owner.id === S.me.id));
-    await pool(ok, 3, async p => { (await plTracks(p.id)).forEach(add); }, progFn('Playlists connues'));
-  }
-  return { ids, keys, has: t => ids.has(t.id) || keys.has(tkey(t)) };
+  (await plTracks(srcId)).forEach(add);
+  if (allPl) await pool(S.playlists.filter(isMine), 3, async p => (await plTracks(p.id)).forEach(add), progFn('Lecture de tes playlists'));
+  return t => ids.has(t.id) || keys.has(tkey(t.name, t.artists && t.artists[0] && t.artists[0].name));
 }
-
-function trackRows(list) {
-  return list.map(({ t, al }) => {
-    const alb = al || t.album || {};
-    const yr = (alb.release_date || '').slice(0, 4);
-    return `<div class="row">${img(cover(alb))}
-      <div class="t"><b>${esc(t.name)}</b><small>${esc((t.artists || []).map(a => a.name).join(', '))} · ${esc(alb.name || '')} ${yr ? '· ' + yr : ''}</small></div>
-      <a href="${spUrl('track', t.id)}" target="_blank">Écouter</a>
-      <button class="sm ghost" data-like="${esc(t.id)}">♡</button></div>`;
-  }).join('');
-}
-
 async function runDiscover() {
-  errs = []; $('#out').innerHTML = '';
-  const nArt = +$('#nArt').value, useGenre = $('#useGenre').checked, allPl = $('#allPl').checked;
-  const tr = await plTracks(selPl());
-  const known = await buildKnown(allPl);
+  const src = $('#pl').value;
+  if (!src) return toast('Aucune playlist lisible.', true);
+  const errs = [], nArt = +$('#nArt').value;
+  const tr = await plTracks(src);
+  const known = await buildKnown(src, opts.allPl);
   const arts = playlistArtists(tr).filter(a => norm(a.name) !== 'various artists').sort((a, b) => b.n - a.n).slice(0, nArt);
-  const byArtist = new Map(), seen = new Set();
   const mk = S.me.country ? '&market=' + S.me.country : '';
-
+  const seen = new Set(), groups = [];
   await pool(arts, 3, async a => {
     const al = (await api(`/artists/${a.id}/albums?include_groups=album,single&limit=10${mk}`)).items || [];
-    const uniq = [], names = new Set();
-    for (const x of al) { const k = norm(x.name); if (!names.has(k)) { names.add(k); uniq.push(x); } }
+    const names = new Set(), uniq = al.filter(x => { const k = norm(x.name); if (names.has(k)) return false; names.add(k); return true; });
+    const list = [];
     for (const album of uniq.slice(0, 6)) {
-      const ts = (await api(`/albums/${album.id}/tracks?limit=50`)).items || [];
-      for (const t of ts) {
+      for (const t of (await api(`/albums/${album.id}/tracks?limit=50`)).items || []) {
         if (!(t.artists || []).some(x => x.id === a.id)) continue;
-        const k = tkey(t);
-        if (known.has(t) || seen.has(k)) continue;
-        seen.add(k);
-        if (!byArtist.has(a.name)) byArtist.set(a.name, []);
-        byArtist.get(a.name).push({ t, al: album });
+        const k = tkey(t.name, t.artists[0] && t.artists[0].name);
+        if (known(t) || seen.has(k)) continue;
+        seen.add(k); list.push(shapeTrack(t, album));
       }
     }
-  }, progFn('Artistes explorés'));
+    if (list.length) groups.push({ id: a.id, name: a.name, n: a.n, tracks: list.sort((x, y) => parseDate(y.date) - parseDate(x.date)).slice(0, 15) });
+  }, progFn('Exploration des artistes'), errs);
+  groups.sort((a, b) => b.n - a.n);
 
-  let html = '<div class="card"><b>Titres de tes artistes que tu ne connais pas encore</b>';
-  if (!byArtist.size) html += '<p class="mut">Rien de nouveau trouvé.</p>';
-  for (const [name, list] of byArtist) {
-    list.sort((x, y) => parseDate(y.al.release_date) - parseDate(x.al.release_date));
-    html += `<h3>${esc(name)} <small>(${list.length})</small></h3>` + trackRows(list.slice(0, 15));
-  }
-  html += '</div>';
-
-  if (useGenre) {
-    const plArt = new Set(playlistArtists(tr).map(a => a.id));
+  let genre = null;
+  if (opts.genre) {
+    const plArt = new Set(playlistArtists(tr).map(a => a.id)), fol = await loadFollowed();
     const g = {};
     await pool(arts.slice(0, 6), 3, async a => {
       const d = await api('/artists/' + a.id);
+      if (d.images) imgCache[a.id] = pickImg(d.images, 160);
       (d.genres || []).forEach(x => g[x] = (g[x] || 0) + 1);
-    }, progFn('Genres'));
+    }, progFn('Analyse des genres'), errs);
     const top = Object.entries(g).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
-    const found = [], fseen = new Set(), fol = await loadFollowed();
-    for (const genre of top) {
-      for (const off of [0, 10, 20]) {
-        try {
-          const q = encodeURIComponent(`genre:"${genre}"`);
-          const r = await api(`/search?q=${q}&type=track&limit=10&offset=${off}`);
-          for (const t of (r.tracks && r.tracks.items) || []) {
-            if (!t || !t.id || known.has(t) || fseen.has(t.id)) continue;
-            if ((t.artists || []).some(a => plArt.has(a.id) || fol.has(a.id))) continue;
-            fseen.add(t.id); found.push({ t });
-          }
-        } catch (e) { errs.push(e.message); }
-      }
+    const found = [], fseen = new Set();
+    for (const gn of top) for (const off of [0, 10, 20]) {
+      try {
+        const r = await api(`/search?q=${encodeURIComponent(`genre:"${gn}"`)}&type=track&limit=10&offset=${off}`);
+        for (const t of (r.tracks && r.tracks.items) || []) {
+          if (!t || !t.id || known(t) || fseen.has(t.id)) continue;
+          if ((t.artists || []).some(a => plArt.has(a.id) || fol.has(a.id))) continue;
+          fseen.add(t.id); found.push(shapeTrack(t));
+        }
+      } catch (e) { errs.push(e.message); }
     }
-    html += `<div class="card"><b>Artistes proches</b> <small>genres : ${esc(top.join(', ') || 'aucun trouvé')}</small>` +
-      (found.length ? trackRows(found) : '<p class="mut">Aucun résultat.</p>') + '</div>';
+    genre = { top, tracks: found };
   }
-  endProg();
-  $('#out').innerHTML = html + errNote();
+  R.discover = { plName: plName(src), ts: Date.now(), groups, genre, errs: errs.slice(0, 3) };
+  saveR('discover'); endProg(); renderDiscover();
+  hydrateAvatars(groups.map(g => g.id));
+}
+function trackRow(t) {
+  const a = isAdded(t.id);
+  return `<div class="trow">${t.img ? `<img src="${esc(t.img)}" alt="" loading="lazy">` : '<div class="ph"></div>'}
+    <div class="t"><b>${esc(t.name)}</b><small>${esc(t.artists)} · ${esc(t.album)}${t.year ? ' · ' + t.year : ''}</small></div>
+    <div class="acts"><a class="btn ghost sm icon" href="${sp('track', t.id)}" target="_blank" title="Écouter">${ICON.play}</a>
+    <button class="btn ghost sm icon" data-like="${esc(t.id)}" title="Liker">${ICON.heart}</button>
+    <button class="btn sm icon ${a ? 'done' : ''}" data-addtrack="${esc(t.id)}" title="Ajouter à la playlist">${a ? ICON.check : ICON.plus}</button></div></div>`;
+}
+function renderDiscover() {
+  const r = R.discover, box = $('#r-discover');
+  if (!r) { box.innerHTML = `<div class="empty"><b>Trouve ce que tu ne connais pas encore</b>Les titres des artistes de ta playlist absents de tes likes et de tes playlists.</div>`; badge('discover'); return; }
+  const n = r.groups.reduce((s, g) => s + g.tracks.length, 0) + (r.genre ? r.genre.tracks.length : 0);
+  let h = `<div class="sum"><h2>Depuis ${esc(r.plName)}<small>${relTime(r.ts)}</small></h2><span class="pill">${n} titres</span></div>`;
+  if (!r.groups.length) h += `<div class="empty"><b>Rien de nouveau</b>Tu connais déjà tout de ces artistes.</div>`;
+  h += r.groups.map(g => `<div class="group"><div class="ghead">${avatar(g.id, g.name)}<b>${esc(g.name)}</b><span class="pill">${g.tracks.length}</span></div>${g.tracks.map(trackRow).join('')}</div>`).join('');
+  if (r.genre) h += `<div class="sum" style="margin-top:22px"><h2>Artistes proches<small>${esc(r.genre.top.join(' · ') || 'aucun genre trouvé')}</small></h2></div>` +
+    (r.genre.tracks.length ? `<div class="group">${r.genre.tracks.map(trackRow).join('')}</div>` : `<div class="empty">Aucun résultat par genre.</div>`);
+  box.innerHTML = h + errNote(r.errs || []);
+  badge('discover', n);
 }
 
-/* ---------- Tab 3 : nouveautés ---------- */
+/* ================= Onglet 3 : nouveautés ================= */
+async function artistReleases(id, mk) {
+  try { return (await api(`/artists/${id}/albums?include_groups=album,single&limit=20${mk}`)).items || []; }
+  catch (e) { if (e.status === 400) return (await api(`/artists/${id}/albums?include_groups=album,single&limit=10${mk}`)).items || []; throw e; }
+}
 async function runNews() {
-  errs = []; $('#out').innerHTML = '';
-  const days = +$('#days').value, cutoff = Date.now() - days * 864e5;
-  setProg('Lecture des artistes suivis…', 5);
-  const fol = [...(await loadFollowed()).values()];
-  const found = new Map();
+  const errs = [], cutoff = Date.now() - 60 * DAY;
+  setProg('Lecture de tes artistes suivis…', 5);
+  const fol = [...(await loadFollowed(true)).values()];
   const mk = S.me.country ? '&market=' + S.me.country : '';
+  const found = new Map();
   await pool(fol, 4, async a => {
-    const d = await api(`/artists/${a.id}/albums?include_groups=album,single&limit=5${mk}`);
-    for (const al of d.items || []) if (parseDate(al.release_date) >= cutoff && !found.has(al.id)) found.set(al.id, al);
-  }, progFn(`Artistes scannés (${fol.length} suivis)`));
-  endProg();
-  const list = [...found.values()].sort((a, b) => parseDate(b.release_date) - parseDate(a.release_date));
-  $('#out').innerHTML = `<div class="card"><b>${list.length}</b> sortie${list.length > 1 ? 's' : ''} sur ${days} jours` +
-    list.map(al => `<div class="row">${img(cover(al))}
-      <div class="t"><b>${esc(al.name)}</b><small>${esc((al.artists || []).map(a => a.name).join(', '))} · ${esc(al.album_type || '')} · ${esc(al.release_date)}</small></div>
-      <a href="${spUrl('album', al.id)}" target="_blank">Écouter</a></div>`).join('') + '</div>' + errNote();
+    for (const al of await artistReleases(a.id, mk)) {
+      const t = parseDate(al.release_date);
+      if (t >= cutoff && !found.has(al.id)) found.set(al.id, {
+        id: al.id, name: al.name, type: al.album_type, date: al.release_date, ts: t, total: al.total_tracks,
+        artists: (al.artists || []).map(x => x.name).join(', '), img: pickImg(al.images, 300) });
+    }
+  }, progFn(`Scan de ${fol.length} artistes`), errs);
+  R.news = { ts: Date.now(), scanned: fol.length, items: [...found.values()].sort((a, b) => b.ts - a.ts), errs: errs.slice(0, 3) };
+  saveR('news'); endProg(); renderNews();
+}
+const visibleNews = () => {
+  if (!R.news) return [];
+  const cut = Date.now() - (+$('#days').value) * DAY;
+  return R.news.items.filter(x => x.ts >= cut && (opts.type === 'all' || x.type === opts.type));
+};
+function renderNews() {
+  const r = R.news, box = $('#r-news');
+  if (!r) { box.innerHTML = `<div class="empty"><b>Aucun scan pour l’instant</b>Lance un scan pour voir les dernières sorties de tes artistes suivis.</div>`; badge('news'); return; }
+  const list = visibleNews(), todo = list.filter(x => !isAdded(x.id));
+  box.innerHTML = `<div class="sum"><h2>${list.length} sortie${list.length > 1 ? 's' : ''}<small>${r.scanned} artistes · scan ${relTime(r.ts)}</small></h2>
+      <button class="btn sm" id="addAll" ${todo.length ? '' : 'disabled'}>${ICON.plus}Tout ajouter (${todo.length})</button></div>` +
+    (list.length ? `<div class="rgrid">${list.map(x => {
+      const a = isAdded(x.id), fresh = Date.now() - x.ts < 3 * DAY;
+      return `<div class="rcard"><a class="cov" href="${sp('album', x.id)}" target="_blank">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy">` : ''}
+          <span class="badge">${x.type === 'single' ? (x.total > 1 ? 'EP' : 'Single') : x.type === 'compilation' ? 'Compil' : 'Album'}</span>${fresh ? '<span class="badge new">New</span>' : ''}</a>
+        <div class="rinfo"><b>${esc(x.name)}</b><small>${esc(x.artists)}</small><small>${fmtDate(x.date)} · ${relDays(x.ts)} · ${x.total} titre${x.total > 1 ? 's' : ''}</small></div>
+        <div class="racts"><a class="btn ghost sm" href="${sp('album', x.id)}" target="_blank">${ICON.play}Écouter</a>
+          <button class="btn sm ${a ? 'done' : ''}" data-addalbum="${esc(x.id)}">${a ? ICON.check + 'Ajouté' : ICON.plus + 'Ajouter'}</button></div></div>`;
+    }).join('')}</div>` : `<div class="empty"><b>Rien sur cette période</b>Élargis la période ou change le filtre.</div>`) + errNote(r.errs || []);
+  badge('news', list.length);
 }
 
-/* ---------- Events ---------- */
+/* ================= UI ================= */
+function badge(k, n) { const el = $('#n-' + k); el.classList.toggle('hide', !n); el.textContent = n || ''; }
+// Les champs partagés sont déplacés dans le panneau actif ; chaque panneau garde une place réservée.
+function mountShared(k) {
+  const p = $('#p-' + k);
+  const sSlot = p.querySelector('[data-slot=src]'), dSlot = p.querySelector('[data-slot=dest]');
+  if (sSlot) sSlot.appendChild($('#fSrc'));
+  if (dSlot) dSlot.appendChild($('#fDest'));
+}
 async function guarded(fn, btn) {
   btn.disabled = true;
-  try { await fn(); }
-  catch (e) { endProg(); $('#out').innerHTML = `<p class="warn">${esc(e.message)}</p>`; }
+  try { await fn(); } catch (e) { endProg(); toast(e.message, true); console.error(e); }
   btn.disabled = false;
 }
-$('#goArtists').onclick = e => guarded(runArtists, e.target);
-$('#goDiscover').onclick = e => guarded(runDiscover, e.target);
-$('#goNews').onclick = e => guarded(runNews, e.target);
-$('#login').onclick = login;
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
-  ['artists', 'discover', 'news'].forEach(k => $('#p-' + k).classList.toggle('hide', k !== t.dataset.tab));
-  $('#plBox').classList.toggle('hide', t.dataset.tab === 'news');
-  $('#out').innerHTML = '';
-});
-$('#out').addEventListener('click', async e => {
-  const b = e.target.closest('button');
+
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button, .chip');
   if (!b) return;
+  if (b.matches('.seg button')) { switchTab(b.dataset.tab); return; }
+  if (b.dataset.opt) { opts[b.dataset.opt] = !opts[b.dataset.opt]; b.classList.toggle('on', opts[b.dataset.opt]); return; }
+  if (b.dataset.type) { opts.type = b.dataset.type; $$('#typeChips .chip').forEach(c => c.classList.toggle('on', c === b)); renderNews(); return; }
   try {
     if (b.dataset.follow) {
-      b.disabled = true;
-      await api('/me/library?uris=' + encodeURIComponent('spotify:artist:' + b.dataset.follow), { method: 'PUT' });
-      S.followed && S.followed.set(b.dataset.follow, { id: b.dataset.follow });
-      b.textContent = '✓ Suivi';
+      b.disabled = true; b.textContent = '…';
+      await followArtist(b.dataset.follow);
+      R.artists.done.push(b.dataset.follow); saveR('artists'); renderArtists();
+      toast('Artiste suivi');
     } else if (b.dataset.like) {
       b.disabled = true;
-      await api('/me/library?uris=' + encodeURIComponent('spotify:track:' + b.dataset.like), { method: 'PUT' });
-      b.textContent = '♥';
+      await likeTrack(b.dataset.like);
+      b.innerHTML = ICON.heartF; b.style.color = 'var(--ac)'; toast('Ajouté à tes titres likés');
+    } else if (b.dataset.addtrack) {
+      const d = destId(); if (!d) return;
+      b.disabled = true;
+      const r = await addUris(d, ['spotify:track:' + b.dataset.addtrack]);
+      markAdded(d, [b.dataset.addtrack]); b.classList.add('done'); b.innerHTML = ICON.check;
+      toast(r.added ? `Ajouté à ${plName(d)}` : `Déjà dans ${plName(d)}`);
+    } else if (b.dataset.addalbum) {
+      const d = destId(); if (!d) return;
+      b.disabled = true; b.textContent = '…';
+      const r = await addUris(d, await albumUris(b.dataset.addalbum));
+      markAdded(d, [b.dataset.addalbum]); renderNews();
+      toast(`${r.added} titre${r.added > 1 ? 's' : ''} ajouté${r.added > 1 ? 's' : ''} à ${plName(d)}${r.skipped ? ` (${r.skipped} déjà présent${r.skipped > 1 ? 's' : ''})` : ''}`);
+    } else if (b.id === 'addAll') {
+      const d = destId(); if (!d) return;
+      const list = visibleNews().filter(x => !isAdded(x.id));
+      b.disabled = true;
+      let uris = [];
+      await pool(list, 3, async x => { uris.push({ ts: x.ts, u: await albumUris(x.id) }); }, progFn('Récupération des titres'));
+      uris = uris.sort((a, z) => z.ts - a.ts).flatMap(x => x.u);
+      setProg('Ajout à la playlist…', 100);
+      const r = await addUris(d, uris);
+      markAdded(d, list.map(x => x.id)); endProg(); renderNews();
+      toast(`${r.added} titres ajoutés à ${plName(d)}${r.skipped ? ` (${r.skipped} déjà présents)` : ''}`);
     }
-  } catch (err) { b.disabled = false; b.textContent = 'Erreur'; b.title = err.message; console.error(err); }
+  } catch (err) {
+    endProg(); b.disabled = false; toast('Erreur : ' + err.message, true); console.error(err);
+    if (b.dataset.follow) b.textContent = 'Réessayer';
+    if (b.dataset.addalbum) b.innerHTML = ICON.plus + 'Ajouter';
+  }
 });
 
-/* ---------- Init ---------- */
+function switchTab(k) {
+  $$('.seg button').forEach(b => b.classList.toggle('on', b.dataset.tab === k));
+  $$('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-' + k));
+  mountShared(k);
+  store.set('tab', k);
+}
+
+$('#goArtists').onclick = e => guarded(runArtists, e.currentTarget);
+$('#goDiscover').onclick = e => guarded(runDiscover, e.currentTarget);
+$('#goNews').onclick = e => guarded(runNews, e.currentTarget);
+$('#days').onchange = () => { store.set('days', $('#days').value); renderNews(); };
+$('#pl').onchange = () => store.set('src', $('#pl').value);
+$('#dest').onchange = async () => {
+  if ($('#dest').value === '__new') { try { await createPlaylist(); } catch (e) { toast('Erreur : ' + e.message, true); $('#dest').value = ''; } }
+  else store.set('dest', $('#dest').value);
+  renderNews(); renderDiscover();
+};
+$('#login').onclick = login;
+
+/* ================= Init ================= */
 async function init() {
   $('#redir').textContent = REDIR;
-  $('#cid').value = localStorage.getItem('cid') || '0def476784b24c8781db7d2793663050';
+  $('#cid').value = store.get('cid', '') || '0def476784b24c8781db7d2793663050';
+  const d = store.get('days', ''); if (d) $('#days').value = d;
+
   const p = new URLSearchParams(location.search);
   try {
     if (p.get('code')) { await exchange(p.get('code')); history.replaceState({}, '', REDIR); }
-    else if (p.get('error')) { $('#authErr').textContent = 'Autorisation refusée : ' + p.get('error'); }
+    else if (p.get('error')) $('#authErr').textContent = 'Autorisation refusée : ' + p.get('error');
   } catch (e) { $('#authErr').textContent = e.message; }
+
+  if (tok && missingScopes().length) {
+    store.del('tok'); tok = null;
+    $('#authErr').textContent = 'Nouvelles autorisations nécessaires (suivre des artistes, modifier tes playlists) : reconnecte-toi.';
+  }
   if (!tok) { $('#setup').classList.remove('hide'); return; }
   try {
     S.me = await api('/me');
-    $('#who').textContent = S.me.display_name || S.me.id;
+    const img = pickImg(S.me.images, 40), nm = S.me.display_name || S.me.id, i = initials(nm, S.me.id);
+    $('#me').innerHTML = (img ? `<img src="${esc(img)}" alt="">` : `<div class="ini av" style="background:${i.bg};font-size:12px">${i.ini}</div>`) +
+      `<span>${esc(nm)}</span><button id="logout">Déconnexion</button>`;
+    $('#me').classList.remove('hide'); $('#logout').onclick = logout;
     $('#app').classList.remove('hide');
+    switchTab(store.get('tab', 'artists'));
+    renderArtists(); renderDiscover(); renderNews();
     await loadPlaylists();
+    renderNews(); renderDiscover();
   } catch (e) {
-    localStorage.removeItem('tok'); tok = null;
-    $('#setup').classList.remove('hide');
+    store.del('tok'); tok = null;
+    $('#app').classList.add('hide'); $('#setup').classList.remove('hide');
     $('#authErr').textContent = 'Connexion impossible : ' + e.message;
   }
 }
