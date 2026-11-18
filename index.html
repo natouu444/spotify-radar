@@ -404,7 +404,7 @@ $('#out').addEventListener('click', async e => {
 /* ---------- Init ---------- */
 async function init() {
   $('#redir').textContent = REDIR;
-  $('#cid').value = localStorage.getItem('cid') || '';
+  $('#cid').value = localStorage.getItem('cid') || '0def476784b24c8781db7d2793663050';
   const p = new URLSearchParams(location.search);
   try {
     if (p.get('code')) { await exchange(p.get('code')); history.replaceState({}, '', REDIR); }
