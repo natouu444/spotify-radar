@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spotify Radar</title>
+<style>
+:root{--bg:#0f1115;--card:#181b22;--line:#262a33;--txt:#e8eaee;--mut:#8b919d;--acc:#1db954;--warn:#f0b429}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+h1{font-size:18px;margin:0}h1 span{color:var(--acc)}
+main{max-width:860px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab{background:var(--card);border:1px solid var(--line);color:var(--mut);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+.tab.on{color:#000;background:var(--acc);border-color:var(--acc);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+select,input[type=text]{background:#0f1115;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;max-width:100%}
+input[type=text]{width:100%}
+label{color:var(--mut);font-size:13px;display:flex;gap:6px;align-items:center}
+button{background:var(--acc);color:#000;border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:14px}
+button.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+button.sm{padding:5px 10px;font-size:12px}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row img,.ph{width:44px;height:44px;border-radius:6px;object-fit:cover;background:#222;flex:none}
+.row .t{flex:1;min-width:0}
+.row .t b,.row .t small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+small,.mut{color:var(--mut)}
+a{color:var(--acc);text-decoration:none}
+h3{margin:14px 0 4px;font-size:15px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+.warn{color:var(--warn);font-size:13px}
+code{background:#0f1115;padding:2px 6px;border-radius:5px;user-select:all}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Spotify <span>Radar</span></h1>
+  <div id="who" class="mut"></div>
+</header>
+<main>
+  <section id="setup" class="card hide">
+    <h3 style="margin-top:0">Connexion</h3>
+    <p class="mut">1. Sur <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a>, crée une app (compte Premium requis) et ajoute ce <b>Redirect URI</b> :</p>
+    <p><code id="redir"></code></p>
+    <p class="mut">2. Colle ici le <b>Client ID</b> de l'app :</p>
+    <input type="text" id="cid" placeholder="Client ID" autocomplete="off">
+    <p><button id="login">Se connecter à Spotify</button></p>
+    <p id="authErr" class="warn"></p>
+  </section>
+
+  <section id="app" class="hide">
+    <div class="tabs">
+      <div class="tab on" data-tab="artists">Artistes non suivis</div>
+      <div class="tab" data-tab="discover">Découvrir</div>
+      <div class="tab" data-tab="news">Nouveautés</div>
+    </div>
+
+    <div class="card" id="plBox">
+      <div class="controls">
+        <select id="pl"></select>
+        <span class="mut" id="plInfo"></span>
+      </div>
+      <div class="mut" style="margin-top:6px;font-size:12px">Seules tes playlists (ou collaboratives) sont lisibles : limite de l'API Spotify depuis 2026.</div>
+    </div>
+
+    <div id="p-artists">
+      <div class="card"><div class="controls"><button id="goArtists">Analyser la playlist</button><span class="mut">Artistes présents dans la playlist que tu ne suis pas.</span></div></div>
+    </div>
+
+    <div id="p-discover" class="hide">
+      <div class="card">
+        <div class="controls">
+          <label>Artistes à explorer
+            <select id="nArt"><option>10</option><option selected>20</option><option>30</option></select>
+          </label>
+          <label><input type="checkbox" id="allPl"> Toutes mes playlists = déjà connues</label>
+          <label><input type="checkbox" id="useGenre" checked> Ajouter des artistes proches (genres)</label>
+          <button id="goDiscover">Chercher</button>
+        </div>
+        <div class="mut" style="margin-top:6px;font-size:12px">Titres des artistes de la playlist absents de tes titres likés et de la playlist. Les « connus » = likés + playlist (+ toutes tes playlists si coché).</div>
+      </div>
+    </div>
+
+    <div id="p-news" class="hide">
+      <div class="card">
+        <div class="controls">
+          <label>Sorties des
+            <select id="days"><option value="7">7 derniers jours</option><option value="14" selected>14 derniers jours</option><option value="30">30 derniers jours</option><option value="60">60 derniers jours</option></select>
+          </label>
+          <button id="goNews">Scanner mes artistes suivis</button>
+        </div>
+        <div class="mut" style="margin-top:6px;font-size:12px">Un appel par artiste suivi : compte quelques minutes si tu en suis beaucoup.</div>
+      </div>
+    </div>
+
+    <div id="prog" class="hide card"><div id="progTxt" class="mut"></div><div class="bar"><i id="progBar"></i></div></div>
+    <div id="out"></div>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const REDIR = location.origin + location.pathname.replace(/index\.html$/, '');
+const SCOPES = 'playlist-read-private playlist-read-collaborative user-follow-read user-library-read user-library-modify';
+const S = { me: null, playlists: [], followed: null, liked: null, plCache: {} };
+let tok = null;
+try { tok = JSON.parse(localStorage.getItem('tok') || 'null'); } catch (e) {}
+
+/* ---------- Auth (PKCE) ---------- */
+const b64 = a => btoa(String.fromCharCode(...new Uint8Array(a))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+async function login() {
+  const cid = $('#cid').value.trim();
+  if (!cid) { $('#authErr').textContent = 'Client ID manquant.'; return; }
+  localStorage.setItem('cid', cid);
+  const v = b64(crypto.getRandomValues(new Uint8Array(48)));
+  const ch = b64(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)));
+  localStorage.setItem('verifier', v);
+  location.href = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
+    client_id: cid, response_type: 'code', redirect_uri: REDIR, scope: SCOPES,
+    code_challenge_method: 'S256', code_challenge: ch
+  });
+}
+
+async function tokenCall(params) {
+  const r = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: localStorage.getItem('cid'), ...params })
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error_description || d.error || 'auth');
+  tok = { access_token: d.access_token, refresh_token: d.refresh_token || (tok && tok.refresh_token), exp: Date.now() + d.expires_in * 1000 };
+  localStorage.setItem('tok', JSON.stringify(tok));
+}
+const exchange = code => tokenCall({ grant_type: 'authorization_code', code, redirect_uri: REDIR, code_verifier: localStorage.getItem('verifier') });
+const refresh = () => tokenCall({ grant_type: 'refresh_token', refresh_token: tok.refresh_token });
+
+/* ---------- API helpers ---------- */
+async function api(path, opt = {}, tries = 0) {
+  if (tok && Date.now() > tok.exp - 60000) await refresh();
+  const url = path.startsWith('http') ? path : 'https://api.spotify.com/v1' + path;
+  const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + tok.access_token, ...(opt.headers || {}) } });
+  if (r.status === 429 && tries < 6) { await sleep((+r.headers.get('Retry-After') || 2) * 1000 + 300); return api(path, opt, tries + 1); }
+  if (r.status === 401 && tries < 1) { await refresh(); return api(path, opt, tries + 1); }
+  if (!r.ok) { const t = await r.text(); throw new Error(r.status + ' ' + path.split('?')[0] + ' ' + t.slice(0, 140)); }
+  return r.status === 204 ? null : r.json().catch(() => null);
+}
+
+async function pageAll(path, pick = x => x) {
+  let url = path; const out = [];
+  while (url) { const d = pick(await api(url)); out.push(...(d.items || [])); url = d.next; }
+  return out;
+}
+
+let errs = [];
+async function pool(items, n, fn, prog) {
+  let i = 0, done = 0;
+  await Promise.all(Array.from({ length: n }, async () => {
+    while (i < items.length) {
+      const k = i++;
+      try { await fn(items[k], k); } catch (e) { errs.push(e.message); }
+      if (prog) prog(++done, items.length);
+    }
+  }));
+}
+
+/* ---------- UI helpers ---------- */
+function setProg(txt, pct) {
+  $('#prog').classList.remove('hide');
+  $('#progTxt').textContent = txt;
+  $('#progBar').style.width = (pct == null ? 100 : pct) + '%';
+}
+const endProg = () => $('#prog').classList.add('hide');
+const progFn = label => (d, n) => setProg(`${label} ${d}/${n}`, d / n * 100);
+function errNote() {
+  if (!errs.length) return '';
+  return `<p class="warn">${errs.length} erreur(s), ex. : ${esc(errs[0])}</p>`;
+}
+const spUrl = (type, id) => `https://open.spotify.com/${type}/${id}`;
+const cover = o => (o.images && o.images.length ? o.images[o.images.length - 1].url : '');
+const img = u => u ? `<img src="${esc(u)}" loading="lazy" alt="">` : '<div class="ph"></div>';
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .replace(/\(.*?\)|\[.*?\]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const tkey = t => norm(t.name) + '|' + norm((t.artists && t.artists[0] && t.artists[0].name) || '');
+function parseDate(s) {
+  if (!s) return 0;
+  const p = s.split('-');
+  return new Date(+p[0], (+p[1] || 1) - 1, +p[2] || 1).getTime();
+}
+const selPl = () => $('#pl').value;
+
+/* ---------- Data loaders ---------- */
+async function loadPlaylists() {
+  S.playlists = (await pageAll('/me/playlists?limit=50')).filter(Boolean);
+  const sel = $('#pl');
+  sel.innerHTML = S.playlists.map(p => {
+    const ok = p.collaborative || (p.owner && p.owner.id === S.me.id);
+    return `<option value="${esc(p.id)}" ${ok ? '' : 'disabled'}>${ok ? '' : '🔒 '}${esc(p.name)}</option>`;
+  }).join('');
+  const first = [...sel.options].find(o => !o.disabled);
+  if (first) sel.value = first.value;
+  $('#plInfo').textContent = `${S.playlists.length} playlists`;
+}
+
+async function plTracks(id) {
+  if (S.plCache[id]) return S.plCache[id];
+  let items;
+  try { items = await pageAll(`/playlists/${id}/items?limit=50`); }
+  catch (e) { items = await pageAll(`/playlists/${id}/tracks?limit=50`); }
+  const out = items.map(x => x && (x.item || x.track)).filter(t => t && t.id && t.type !== 'episode');
+  S.plCache[id] = out;
+  return out;
+}
+
+async function loadFollowed() {
+  if (S.followed) return S.followed;
+  const arr = await pageAll('/me/following?type=artist&limit=50', d => d.artists);
+  S.followed = new Map(arr.map(a => [a.id, a]));
+  return S.followed;
+}
+
+async function loadLiked() {
+  if (S.liked) return S.liked;
+  const arr = await pageAll('/me/tracks?limit=50');
+  S.liked = arr.map(x => x && (x.track || x.item)).filter(t => t && t.id);
+  return S.liked;
+}
+
+function playlistArtists(tracks) {
+  const m = new Map();
+  for (const t of tracks) for (const a of t.artists || []) {
+    if (!a.id) continue;
+    const e = m.get(a.id) || { id: a.id, name: a.name, n: 0 };
+    e.n++; m.set(a.id, e);
+  }
+  return [...m.values()];
+}
+
+/* ---------- Tab 1 : artistes non suivis ---------- */
+async function runArtists() {
+  errs = []; $('#out').innerHTML = '';
+  setProg('Lecture de la playlist et des artistes suivis…', 30);
+  const [tr, fol] = await Promise.all([plTracks(selPl()), loadFollowed()]);
+  endProg();
+  const list = playlistArtists(tr);
+  const un = list.filter(a => !fol.has(a.id)).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+  $('#out').innerHTML = `<div class="card"><b>${tr.length}</b> titres · <b>${list.length}</b> artistes · <b>${un.length}</b> non suivis` +
+    un.map(a => `<div class="row"><div class="t"><b>${esc(a.name)}</b><small>${a.n} titre${a.n > 1 ? 's' : ''} dans la playlist</small></div>
+      <a href="${spUrl('artist', a.id)}" target="_blank">Ouvrir</a>
+      <button class="sm" data-follow="${esc(a.id)}">Suivre</button></div>`).join('') + '</div>' + errNote();
+}
+
+/* ---------- Tab 2 : découvrir ---------- */
+async function buildKnown(allPl) {
+  const ids = new Set(), keys = new Set();
+  const add = t => { ids.add(t.id); keys.add(tkey(t)); };
+  setProg('Lecture de tes titres likés…', 10);
+  (await loadLiked()).forEach(add);
+  (await plTracks(selPl())).forEach(add);
+  if (allPl) {
+    const ok = S.playlists.filter(p => p.collaborative || (p.owner && p.owner.id === S.me.id));
+    await pool(ok, 3, async p => { (await plTracks(p.id)).forEach(add); }, progFn('Playlists connues'));
+  }
+  return { ids, keys, has: t => ids.has(t.id) || keys.has(tkey(t)) };
+}
+
+function trackRows(list) {
+  return list.map(({ t, al }) => {
+    const alb = al || t.album || {};
+    const yr = (alb.release_date || '').slice(0, 4);
+    return `<div class="row">${img(cover(alb))}
+      <div class="t"><b>${esc(t.name)}</b><small>${esc((t.artists || []).map(a => a.name).join(', '))} · ${esc(alb.name || '')} ${yr ? '· ' + yr : ''}</small></div>
+      <a href="${spUrl('track', t.id)}" target="_blank">Écouter</a>
+      <button class="sm ghost" data-like="${esc(t.id)}">♡</button></div>`;
+  }).join('');
+}
+
+async function runDiscover() {
+  errs = []; $('#out').innerHTML = '';
+  const nArt = +$('#nArt').value, useGenre = $('#useGenre').checked, allPl = $('#allPl').checked;
+  const tr = await plTracks(selPl());
+  const known = await buildKnown(allPl);
+  const arts = playlistArtists(tr).filter(a => norm(a.name) !== 'various artists').sort((a, b) => b.n - a.n).slice(0, nArt);
+  const byArtist = new Map(), seen = new Set();
+  const mk = S.me.country ? '&market=' + S.me.country : '';
+
+  await pool(arts, 3, async a => {
+    const al = (await api(`/artists/${a.id}/albums?include_groups=album,single&limit=10${mk}`)).items || [];
+    const uniq = [], names = new Set();
+    for (const x of al) { const k = norm(x.name); if (!names.has(k)) { names.add(k); uniq.push(x); } }
+    for (const album of uniq.slice(0, 6)) {
+      const ts = (await api(`/albums/${album.id}/tracks?limit=50`)).items || [];
+      for (const t of ts) {
+        if (!(t.artists || []).some(x => x.id === a.id)) continue;
+        const k = tkey(t);
+        if (known.has(t) || seen.has(k)) continue;
+        seen.add(k);
+        if (!byArtist.has(a.name)) byArtist.set(a.name, []);
+        byArtist.get(a.name).push({ t, al: album });
+      }
+    }
+  }, progFn('Artistes explorés'));
+
+  let html = '<div class="card"><b>Titres de tes artistes que tu ne connais pas encore</b>';
+  if (!byArtist.size) html += '<p class="mut">Rien de nouveau trouvé.</p>';
+  for (const [name, list] of byArtist) {
+    list.sort((x, y) => parseDate(y.al.release_date) - parseDate(x.al.release_date));
+    html += `<h3>${esc(name)} <small>(${list.length})</small></h3>` + trackRows(list.slice(0, 15));
+  }
+  html += '</div>';
+
+  if (useGenre) {
+    const plArt = new Set(playlistArtists(tr).map(a => a.id));
+    const g = {};
+    await pool(arts.slice(0, 6), 3, async a => {
+      const d = await api('/artists/' + a.id);
+      (d.genres || []).forEach(x => g[x] = (g[x] || 0) + 1);
+    }, progFn('Genres'));
+    const top = Object.entries(g).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+    const found = [], fseen = new Set(), fol = await loadFollowed();
+    for (const genre of top) {
+      for (const off of [0, 10, 20]) {
+        try {
+          const q = encodeURIComponent(`genre:"${genre}"`);
+          const r = await api(`/search?q=${q}&type=track&limit=10&offset=${off}`);
+          for (const t of (r.tracks && r.tracks.items) || []) {
+            if (!t || !t.id || known.has(t) || fseen.has(t.id)) continue;
+            if ((t.artists || []).some(a => plArt.has(a.id) || fol.has(a.id))) continue;
+            fseen.add(t.id); found.push({ t });
+          }
+        } catch (e) { errs.push(e.message); }
+      }
+    }
+    html += `<div class="card"><b>Artistes proches</b> <small>genres : ${esc(top.join(', ') || 'aucun trouvé')}</small>` +
+      (found.length ? trackRows(found) : '<p class="mut">Aucun résultat.</p>') + '</div>';
+  }
+  endProg();
+  $('#out').innerHTML = html + errNote();
+}
+
+/* ---------- Tab 3 : nouveautés ---------- */
+async function runNews() {
+  errs = []; $('#out').innerHTML = '';
+  const days = +$('#days').value, cutoff = Date.now() - days * 864e5;
+  setProg('Lecture des artistes suivis…', 5);
+  const fol = [...(await loadFollowed()).values()];
+  const found = new Map();
+  const mk = S.me.country ? '&market=' + S.me.country : '';
+  await pool(fol, 4, async a => {
+    const d = await api(`/artists/${a.id}/albums?include_groups=album,single&limit=5${mk}`);
+    for (const al of d.items || []) if (parseDate(al.release_date) >= cutoff && !found.has(al.id)) found.set(al.id, al);
+  }, progFn(`Artistes scannés (${fol.length} suivis)`));
+  endProg();
+  const list = [...found.values()].sort((a, b) => parseDate(b.release_date) - parseDate(a.release_date));
+  $('#out').innerHTML = `<div class="card"><b>${list.length}</b> sortie${list.length > 1 ? 's' : ''} sur ${days} jours` +
+    list.map(al => `<div class="row">${img(cover(al))}
+      <div class="t"><b>${esc(al.name)}</b><small>${esc((al.artists || []).map(a => a.name).join(', '))} · ${esc(al.album_type || '')} · ${esc(al.release_date)}</small></div>
+      <a href="${spUrl('album', al.id)}" target="_blank">Écouter</a></div>`).join('') + '</div>' + errNote();
+}
+
+/* ---------- Events ---------- */
+async function guarded(fn, btn) {
+  btn.disabled = true;
+  try { await fn(); }
+  catch (e) { endProg(); $('#out').innerHTML = `<p class="warn">${esc(e.message)}</p>`; }
+  btn.disabled = false;
+}
+$('#goArtists').onclick = e => guarded(runArtists, e.target);
+$('#goDiscover').onclick = e => guarded(runDiscover, e.target);
+$('#goNews').onclick = e => guarded(runNews, e.target);
+$('#login').onclick = login;
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  ['artists', 'discover', 'news'].forEach(k => $('#p-' + k).classList.toggle('hide', k !== t.dataset.tab));
+  $('#plBox').classList.toggle('hide', t.dataset.tab === 'news');
+  $('#out').innerHTML = '';
+});
+$('#out').addEventListener('click', async e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  try {
+    if (b.dataset.follow) {
+      b.disabled = true;
+      await api('/me/library?uris=' + encodeURIComponent('spotify:artist:' + b.dataset.follow), { method: 'PUT' });
+      S.followed && S.followed.set(b.dataset.follow, { id: b.dataset.follow });
+      b.textContent = '✓ Suivi';
+    } else if (b.dataset.like) {
+      b.disabled = true;
+      await api('/me/library?uris=' + encodeURIComponent('spotify:track:' + b.dataset.like), { method: 'PUT' });
+      b.textContent = '♥';
+    }
+  } catch (err) { b.disabled = false; b.textContent = 'Erreur'; b.title = err.message; console.error(err); }
+});
+
+/* ---------- Init ---------- */
+async function init() {
+  $('#redir').textContent = REDIR;
+  $('#cid').value = localStorage.getItem('cid') || '';
+  const p = new URLSearchParams(location.search);
+  try {
+    if (p.get('code')) { await exchange(p.get('code')); history.replaceState({}, '', REDIR); }
+    else if (p.get('error')) { $('#authErr').textContent = 'Autorisation refusée : ' + p.get('error'); }
+  } catch (e) { $('#authErr').textContent = e.message; }
+  if (!tok) { $('#setup').classList.remove('hide'); return; }
+  try {
+    S.me = await api('/me');
+    $('#who').textContent = S.me.display_name || S.me.id;
+    $('#app').classList.remove('hide');
+    await loadPlaylists();
+  } catch (e) {
+    localStorage.removeItem('tok'); tok = null;
+    $('#setup').classList.remove('hide');
+    $('#authErr').textContent = 'Connexion impossible : ' + e.message;
+  }
+}
+init();
+</script>
+</body>
+</html>
